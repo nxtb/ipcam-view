@@ -13,7 +13,10 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import androidx.core.util.Pair;
+
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /*
  * I don't really understand and want to know what the hell it does!
@@ -41,13 +44,13 @@ public class MjpegViewNative extends AbstractMjpegView {
     private int overlayBackgroundColor;
     private int backgroundColor;
     private int ovlPos;
-    private int dispWidth;
-    private int dispHeight;
     private int displayMode;
 
     private boolean suspending = false;
 
     private Bitmap bmp = null;
+
+    private AtomicReference<Pair<Integer, Integer>> displaySize = new AtomicReference<>();
 
     private int IMG_WIDTH = 640;
     private int IMG_HEIGHT = 480;
@@ -65,6 +68,15 @@ public class MjpegViewNative extends AbstractMjpegView {
         }
 
         private Rect destRect(int bmw, int bmh) {
+            Pair<Integer, Integer> size = displaySize.get();
+
+            if(size == null || size.first == null || size.second == null) {
+                return  null;
+            }
+
+            int dispWidth = size.first;
+            int dispHeight = size.second;
+
             int tempx;
             int tempy;
             if (displayMode == MjpegViewNative.SIZE_STANDARD) {
@@ -91,10 +103,7 @@ public class MjpegViewNative extends AbstractMjpegView {
 
         // no more accessible
         void setSurfaceSize(int width, int height) {
-            synchronized (mSurfaceHolder) {
-                dispWidth = width;
-                dispHeight = height;
-            }
+            displaySize.set(Pair.create(width, height));
         }
 
         private Bitmap makeFpsOverlay(Paint p) {
@@ -142,6 +151,12 @@ public class MjpegViewNative extends AbstractMjpegView {
                         destRect = destRect(bmp.getWidth(), bmp.getHeight());
 
                         c = mSurfaceHolder.lockCanvas();
+
+                        if (c == null) {
+                            Log.w(TAG, "null canvas, skipping render");
+                            continue;
+                        }
+
                         synchronized (mSurfaceHolder) {
                             if (transparentBackground) {
                                 c.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
@@ -202,8 +217,7 @@ public class MjpegViewNative extends AbstractMjpegView {
         backgroundColor = Color.BLACK;
         ovlPos = MjpegViewNative.POSITION_LOWER_RIGHT;
         displayMode = MjpegViewNative.SIZE_STANDARD;
-        dispWidth = mSurfaceView.getWidth();
-        dispHeight = mSurfaceView.getHeight();
+        displaySize.set(Pair.create(mSurfaceView.getWidth(), mSurfaceView.getHeight()));
     }
 
     /* all methods/constructors below are no more accessible */

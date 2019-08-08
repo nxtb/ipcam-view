@@ -3,11 +3,12 @@ package com.github.niqdev.mjpeg;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
-import androidx.annotation.StyleableRes;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import androidx.annotation.StyleableRes;
 
 public class MjpegSurfaceView extends SurfaceView implements SurfaceHolder.Callback, MjpegView {
 

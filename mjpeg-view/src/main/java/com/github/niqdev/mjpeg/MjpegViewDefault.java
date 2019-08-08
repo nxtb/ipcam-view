@@ -15,7 +15,11 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
+
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /*
  * I don't really understand and want to know what the hell it does!
@@ -43,10 +47,10 @@ public class MjpegViewDefault extends AbstractMjpegView {
     private int overlayBackgroundColor;
     private int backgroundColor;
     private int ovlPos;
-    private int dispWidth;
-    private int dispHeight;
     private int displayMode;
     private boolean resume = false;
+
+    private AtomicReference<Pair<Integer, Integer>> displaySize = new AtomicReference<>();
 
     private long delay;
 
@@ -64,7 +68,17 @@ public class MjpegViewDefault extends AbstractMjpegView {
             mSurfaceHolder = surfaceHolder;
         }
 
+        @Nullable
         private Rect destRect(int bmw, int bmh) {
+
+            Pair<Integer, Integer> size = displaySize.get();
+
+            if(size == null || size.first == null || size.second == null) {
+                return  null;
+            }
+
+            int dispWidth = size.first;
+            int dispHeight = size.second;
 
             int tempx;
             int tempy;
@@ -92,10 +106,7 @@ public class MjpegViewDefault extends AbstractMjpegView {
 
         // no more accessible
         void setSurfaceSize(int width, int height) {
-            synchronized (mSurfaceHolder) {
-                dispWidth = width;
-                dispHeight = height;
-            }
+            displaySize.set(Pair.create(width, height));
         }
 
         private Bitmap makeFpsOverlay(Paint p, String text) {
@@ -227,8 +238,7 @@ public class MjpegViewDefault extends AbstractMjpegView {
             backgroundColor = Color.BLACK;
             ovlPos = MjpegViewDefault.POSITION_LOWER_RIGHT;
             displayMode = MjpegViewDefault.SIZE_STANDARD;
-            dispWidth = mSurfaceView.getWidth();
-            dispHeight = mSurfaceView.getHeight();
+            displaySize.set(Pair.create(mSurfaceView.getWidth(), mSurfaceView.getHeight()));
         }
     }
 
@@ -255,7 +265,7 @@ public class MjpegViewDefault extends AbstractMjpegView {
     /*
      * @see https://github.com/niqdev/ipcam-view/issues/14
      */
-    synchronized void _stopPlayback() {
+    void _stopPlayback() {
         mRun = false;
         boolean retry = true;
         while (retry) {
@@ -282,12 +292,14 @@ public class MjpegViewDefault extends AbstractMjpegView {
     }
 
     void _surfaceChanged(SurfaceHolder holder, int f, int w, int h) {
+        Log.d(TAG, "onSurfaceChanged: " + w + ", " + h);
         if (thread != null) {
             thread.setSurfaceSize(w, h);
         }
     }
 
     void _surfaceDestroyed(SurfaceHolder holder) {
+        Log.d(TAG ,"onSurfaceDestroyed");
         surfaceDone = false;
         _stopPlayback();
         if (thread != null) {
