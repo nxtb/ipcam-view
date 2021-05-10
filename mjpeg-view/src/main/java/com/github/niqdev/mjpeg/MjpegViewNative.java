@@ -67,11 +67,13 @@ public class MjpegViewNative extends AbstractMjpegView {
             mSurfaceHolder = surfaceHolder;
         }
 
-        private Rect destRect(int bmw, int bmh) {
+        private Rect destinationRect = new Rect();
+
+        private void updateDestRect(int bmw, int bmh) {
             Pair<Integer, Integer> size = displaySize.get();
 
             if(size == null || size.first == null || size.second == null) {
-                return  null;
+                return;
             }
 
             int dispWidth = size.first;
@@ -82,7 +84,8 @@ public class MjpegViewNative extends AbstractMjpegView {
             if (displayMode == MjpegViewNative.SIZE_STANDARD) {
                 tempx = (dispWidth / 2) - (bmw / 2);
                 tempy = (dispHeight / 2) - (bmh / 2);
-                return new Rect(tempx, tempy, bmw + tempx, bmh + tempy);
+
+                destinationRect.set(tempx, tempy, bmw + tempx, bmh + tempy);
             }
             if (displayMode == MjpegViewNative.SIZE_BEST_FIT) {
                 float bmasp = (float) bmw / (float) bmh;
@@ -94,11 +97,11 @@ public class MjpegViewNative extends AbstractMjpegView {
                 }
                 tempx = (dispWidth / 2) - (bmw / 2);
                 tempy = (dispHeight / 2) - (bmh / 2);
-                return new Rect(tempx, tempy, bmw + tempx, bmh + tempy);
+
+                destinationRect.set(tempx, tempy, bmw + tempx, bmh + tempy);
             }
             if (displayMode == MjpegViewNative.SIZE_FULLSCREEN)
-                return new Rect(0, 0, dispWidth, dispHeight);
-            return null;
+                destinationRect.set(0, 0, dispWidth, dispHeight);
         }
 
         // no more accessible
@@ -132,7 +135,6 @@ public class MjpegViewNative extends AbstractMjpegView {
 
             while (mRun) {
 
-                Rect destRect = null;
                 Canvas c = null;
 
                 if (surfaceDone) {
@@ -148,7 +150,7 @@ public class MjpegViewNative extends AbstractMjpegView {
                             return;
                         }
 
-                        destRect = destRect(bmp.getWidth(), bmp.getHeight());
+                        updateDestRect(bmp.getWidth(), bmp.getHeight());
 
                         c = mSurfaceHolder.lockCanvas();
 
@@ -164,15 +166,15 @@ public class MjpegViewNative extends AbstractMjpegView {
                                 c.drawColor(backgroundColor);
                             }
 
-                            c.drawBitmap(bmp, null, destRect, p);
+                            c.drawBitmap(bmp, null, destinationRect, p);
 
                             if (showFps) {
                                 p.setXfermode(mode);
                                 if (ovl != null) {
 
                                     // false indentation to fix forum layout
-                                    height = ((ovlPos & 1) == 1) ? destRect.top : destRect.bottom - ovl.getHeight();
-                                    width = ((ovlPos & 8) == 8) ? destRect.left : destRect.right - ovl.getWidth();
+                                    height = ((ovlPos & 1) == 1) ? destinationRect.top : destinationRect.bottom - ovl.getHeight();
+                                    width = ((ovlPos & 8) == 8) ? destinationRect.left : destinationRect.right - ovl.getWidth();
 
                                     c.drawBitmap(ovl, width, height, null);
                                 }

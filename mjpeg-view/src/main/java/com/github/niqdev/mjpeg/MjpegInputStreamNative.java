@@ -2,13 +2,10 @@ package com.github.niqdev.mjpeg;
 
 import android.graphics.Bitmap;
 import android.util.Log;
-
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
 
 /*
  * I don't really understand and want to know what the hell it does!
@@ -95,10 +92,34 @@ public class MjpegInputStreamNative extends MjpegInputStream {
     }
 
     private int parseContentLength(byte[] headerBytes) throws IOException, IllegalArgumentException {
-        ByteArrayInputStream headerIn = new ByteArrayInputStream(headerBytes);
-        Properties props = new Properties();
-        props.load(headerIn);
-        return Integer.parseInt(props.getProperty(CONTENT_LENGTH));
+        int j = 0;
+        int i = 0;
+        while (i < headerBytes.length && j < CONTENT_LENGTH.length()) {
+            if ( headerBytes[i] == CONTENT_LENGTH.charAt(j)) {
+                j++;
+            }
+            i++;
+        }
+
+        if(j != CONTENT_LENGTH.length()) {
+            return -1;
+        }
+
+        // :
+        i++;
+
+        // <space> after :
+        i++;
+
+        int end = i;
+
+        // UNTIL the \n at the end of the line
+        while(headerBytes[end + 1] != '\n') {
+            end++;
+        }
+
+        return Integer.parseInt(new String(headerBytes, i, end-i));
+
     }
 
     // no more accessible
