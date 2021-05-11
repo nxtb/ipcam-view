@@ -119,7 +119,6 @@ public class MjpegInputStreamNative extends MjpegInputStream {
         }
 
         return Integer.parseInt(new String(headerBytes, i, end-i));
-
     }
 
     // no more accessible
@@ -177,7 +176,7 @@ public class MjpegInputStreamNative extends MjpegInputStream {
 
         skipBytes(headerLen);
 
-        readFully(frameData, 0, mContentLength);
+        readFully(frameData, 0, Math.min(frameData.length, mContentLength));
 
         if (count++ % skip == 0) {
             return pixeltobmp(frameData, mContentLength, bmp);
