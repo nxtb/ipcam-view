@@ -176,12 +176,18 @@ public class MjpegInputStreamNative extends MjpegInputStream {
 
         skipBytes(headerLen);
 
-        readFully(frameData, 0, Math.min(frameData.length, mContentLength));
+        final int length = Math.min(frameData.length, mContentLength);
+            if (length > 0 && frameData.length >= length) {
+              readFully(frameData, 0, length);
 
-        if (count++ % skip == 0) {
-            return pixeltobmp(frameData, mContentLength, bmp);
+              if (count++ % skip == 0) {
+                return pixeltobmp(frameData, mContentLength, bmp);
+              } else {
+                return 0;
+              }
         } else {
-            return 0;
+              Log.e(TAG, "invalid content length received: " + length + " frame: " + frameData.length);
+              return 0;
         }
     }
 
