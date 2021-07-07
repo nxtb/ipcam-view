@@ -95,7 +95,7 @@ public class MjpegInputStreamNative extends MjpegInputStream {
         int j = 0;
         int i = 0;
         while (i < headerBytes.length && j < CONTENT_LENGTH.length()) {
-            if ( headerBytes[i] == CONTENT_LENGTH.charAt(j)) {
+            if (headerBytes[i] == Character.toUpperCase(CONTENT_LENGTH.charAt(j)) || headerBytes[i] == Character.toLowerCase(CONTENT_LENGTH.charAt(j))) {
                 j++;
             }
             i++;
