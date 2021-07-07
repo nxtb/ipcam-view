@@ -29,10 +29,15 @@ public class HeaderExtractor {
         int end = i;
 
         // UNTIL the \n at the end of the line
-        while(headerBytes[end] != '\n') {
+        while(!isNewlineOrCR(headerBytes[end])) {
             end++;
         }
 
         return Integer.parseInt(new String(headerBytes, i, end-i));
     }
+
+    private static Boolean isNewlineOrCR(byte byteToCheck){
+        return byteToCheck == '\n' || byteToCheck == '\r';
+    }
+
 }
