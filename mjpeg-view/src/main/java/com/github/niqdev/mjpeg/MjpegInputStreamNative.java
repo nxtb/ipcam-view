@@ -17,7 +17,6 @@ public class MjpegInputStreamNative extends MjpegInputStream {
 
     private final byte[] SOI_MARKER = {(byte) 0xFF, (byte) 0xD8};
     private final byte[] EOF_MARKER = {(byte) 0xFF, (byte) 0xD9};
-    private final String CONTENT_LENGTH = "Content-Length";
     private static final int HEADER_MAX_LENGTH = 100;
     // private final static int FRAME_MAX_LENGTH = 40000 + HEADER_MAX_LENGTH;
     private static final int FRAME_MAX_LENGTH = 200000;
@@ -91,36 +90,6 @@ public class MjpegInputStreamNative extends MjpegInputStream {
         return -1;
     }
 
-    private int parseContentLength(byte[] headerBytes) throws IOException, IllegalArgumentException {
-        int j = 0;
-        int i = 0;
-        while (i < headerBytes.length && j < CONTENT_LENGTH.length()) {
-            if ( headerBytes[i] == CONTENT_LENGTH.charAt(j)) {
-                j++;
-            }
-            i++;
-        }
-
-        if(j != CONTENT_LENGTH.length()) {
-            return -1;
-        }
-
-        // :
-        i++;
-
-        // <space> after :
-        i++;
-
-        int end = i;
-
-        // UNTIL the \n at the end of the line
-        while(headerBytes[end + 1] != '\n') {
-            end++;
-        }
-
-        return Integer.parseInt(new String(headerBytes, i, end-i));
-    }
-
     // no more accessible
     int readMjpegFrame(Bitmap bmp) throws IOException {
         mark(FRAME_MAX_LENGTH);
@@ -143,7 +112,7 @@ public class MjpegInputStreamNative extends MjpegInputStream {
 
         int ContentLengthNew = -1;
         try {
-            ContentLengthNew = parseContentLength(header);
+            ContentLengthNew = HeaderExtractor.parseContentLength(header);
         } catch (NumberFormatException nfe) {
             ContentLengthNew = getEndOfSeqeunceSimplified(this, EOF_MARKER);
 
