@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 34
+    compileSdkVersion 35
 
     defaultConfig {
         applicationId "com.github.niqdev.ipcam"
         minSdkVersion 22
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 12
         versionName "1.9.0"
     }
