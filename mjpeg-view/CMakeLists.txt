@@ -74,3 +74,5 @@ target_link_libraries( # Specifies the target library.
                        ${log-lib}
                        ${jnigraphics-lib}
         )
+
+target_link_options(ImageProc PRIVATE "-Wl,-z,max-page-size=16384")
